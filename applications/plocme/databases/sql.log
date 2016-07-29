@@ -1,0 +1,225 @@
+timestamp: 2010-11-17T01:14:41.112511
+CREATE TABLE auth_user(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name CHAR(128),
+    last_name CHAR(128),
+    email CHAR(512),
+    password CHAR(512),
+    registration_key CHAR(512),
+    reset_password_key CHAR(512)
+);
+success!
+timestamp: 2010-11-17T01:14:41.265993
+CREATE TABLE auth_group(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    role CHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2010-11-17T01:14:41.353071
+CREATE TABLE auth_membership(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    group_id INTEGER REFERENCES auth_group(id) ON DELETE CASCADE
+);
+success!
+timestamp: 2010-11-17T01:14:41.456959
+CREATE TABLE auth_permission(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_id INTEGER REFERENCES auth_group(id) ON DELETE CASCADE,
+    name CHAR(512),
+    table_name CHAR(512),
+    record_id INTEGER
+);
+success!
+timestamp: 2010-11-17T01:14:41.542633
+CREATE TABLE auth_event(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    time_stamp TIMESTAMP,
+    client_ip CHAR(512),
+    user_id INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    origin CHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2010-11-17T01:48:21.562012
+ALTER TABLE auth_user ADD registration_id CHAR(512);
+timestamp: 2010-11-17T01:50:04.394585
+ALTER TABLE auth_user ADD phone CHAR(14);
+timestamp: 2010-11-17T01:50:04.499696
+ALTER TABLE auth_user ADD imei CHAR(50);
+timestamp: 2010-11-17T02:05:32.127777
+CREATE TABLE categories(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category_name CHAR(512),
+    points INTEGER,
+    description TEXT NOT NULL,
+    created_by INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    created_on TIMESTAMP
+);
+success!
+timestamp: 2010-11-17T02:05:32.292118
+CREATE TABLE bubbles(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    address CHAR(512),
+    longitude CHAR(512),
+    latitude CHAR(512),
+    quantity CHAR(512),
+    validity TIMESTAMP,
+    category CHAR(512),
+    description TEXT NOT NULL,
+    status CHAR(1),
+    created_by INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    created_on TIMESTAMP
+);
+success!
+timestamp: 2010-11-17T02:05:32.389790
+CREATE TABLE user_bubble(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bubble INTEGER,
+    user INTEGER
+);
+success!
+timestamp: 2011-01-08T15:01:20.638214
+CREATE TABLE contact(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    email CHAR(512),
+    tel CHAR(512),
+    message CHAR(512),
+    date TIMESTAMP
+);
+success!
+timestamp: 2011-01-08T15:31:51.126064
+CREATE TABLE recipient(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    email CHAR(512)
+);
+success!
+timestamp: 2011-01-09T23:06:28.573228
+ALTER TABLE user_bubble ADD user_points INTEGER;
+timestamp: 2011-01-11T09:29:36.256336
+ALTER TABLE auth_user ADD points INTEGER;
+success!
+success!
+success!
+success!
+success!
+timestamp: 2016-07-24T12:35:17.272000
+CREATE TABLE auth_cas(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE  ,
+    created_on TIMESTAMP,
+    service CHAR(512),
+    ticket CHAR(512),
+    renew CHAR(1)
+);
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!

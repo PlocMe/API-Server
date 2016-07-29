@@ -1,0 +1,28 @@
+{{extend 'home.html'}}
+<div id="banner">
+  <div class="download">
+    <h1>Capture bolhas e ganhe prêmios!</h1>
+    <a href="{{=URL(r=request,args='../download')}}" class="bt-android"><span class="droid"></span>{{=T('Baixe o Ploc.Me para Android 2.1')}}</a>
+    <span></span>
+  </div>
+  <div id="slider" class="nivoSlider">
+      <img src="{{=URL('static','images/banner-01.jpg')}}" alt="" />
+      <!-- <img src="{{=URL('static','images/banner-02.jpg')}}" alt="" />
+      <img src="{{=URL('static','images/banner-03.jpg')}}" alt="" />
+      <img src="{{=URL('static','images/banner-04.jpg')}}" alt="" /> -->
+  </div>
+</div>
+<img src="{{=URL('static','images/smartphone.png')}}" alt="Ploc.Me" class="smartphone" />
+
+
+<div class="about">
+  <span class="phone-about"></span>
+  <p>Ploc.Me é um jogo para smartphones com Android e equipados com GPS e câmera. Baixe gratuitamente o Ploc.Me para localizar e capturar as bolhas premiadas*.</p>
+  <small>*<b>ATENÇÃO</b>: Este aplicativo, Ploc.Me, é trabalho de conclusão do curso de Tecnologia em Sistemas para Internet da Universidade Feevale (2010). Portanto, informações deste site não são reais. <b>Caso use o Ploc.Me, esteja ciente que as consequências são por sua conta e risco</b>.</small>   
+</div>
+<div class="medias">
+  <a href="http://twitter.com/plocme" class="bt-twitter replace" rel="external">Twitter</a>
+  <a href="http://facebook.com/plocme" class="bt-facebook replace" rel="external">Facebook</a>
+  <!-- <a href="http://www.linkedin.com/plocme" class="bt-linkedin replace" rel="external">LinkedIn</a>-->
+  <!-- <a href="http://www.youtube.com/plocme" class="bt-youtube replace" rel="external">You Tube</a>-->
+</a>

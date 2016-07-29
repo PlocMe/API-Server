@@ -1,0 +1,262 @@
+# -*- coding: utf-8 -*- 
+
+#########################################################################
+## This scaffolding model makes your app work on Google App Engine too
+#########################################################################
+if request.env.web2py_runtime_gae:            # if running on Google App Engine
+    from gluon.contrib.gae_memcache import MemcacheClient
+    from gluon.contrib.memdb import MEMDB
+    cache.memcache = MemcacheClient(request)
+    cache.ram = cache.disk = cache.memcache
+    db = DAL('gae')                           # connect to Google BigTable
+    session.connect(request,response,MEMDB(cache.memcache))
+    #session.connect(request, response, db = db) # and store sessions and tickets there
+    ### or use the following lines to store sessions in Memcache
+    # from gluon.contrib.memdb import MEMDB
+    # from google.appengine.api.memcache import Client
+    # session.connect(request, response, db = MEMDB(Client()))
+else:                                         # else use a normal relational database
+    db = DAL('sqlite://storage.sqlite')       # if not, use SQLite or other DB
+## if no need for session
+# session.forget()
+
+#########################################################################
+## Here is sample code if you need for 
+## - email capabilities
+## - authentication (registration, login, logout, ... )
+## - authorization (role based authorization)
+## - services (xml, csv, json, xmlrpc, jsonrpc, amf, rss)
+## - crud actions
+## (more options discussed in gluon/tools.py)
+#########################################################################
+
+from gluon.tools import *
+mail = Mail()                                   # mailer
+auth = Auth(globals(),db)                       # authentication/authorization
+crud = Crud(globals(),db)                       # for CRUD helpers using auth
+service = Service(globals())                    # for json, xml, jsonrpc, xmlrpc, amfrpc
+plugins = PluginManager()
+
+mail.settings.server = 'gae'                    # your SMTP server
+mail.settings.sender = 'register@ploc.me'       # your email
+mail.settings.login = None                      # your credentials or None
+
+auth.settings.hmac_key = None                   # before define_tables()
+#auth.define_tables()                           # creates all needed tables
+auth.settings.mailer = mail                     # for user email verification
+auth.settings.create_user_groups = True         # desativar a criação de grupos
+auth.settings.registration_requires_verification = False
+auth.settings.registration_requires_approval = False
+auth.messages.verify_email = 'Click on the link http://'+request.env.http_host+URL(r=request,c='default',f='user',args=['verify_email'])+'/%(key)s to verify your email'
+auth.settings.reset_password_requires_verification = True
+auth.messages.reset_password = 'Click on the link http://'+request.env.http_host+URL(r=request,c='default',f='user',args=['reset_password'])+'/%(key)s to reset your password'
+
+## Redirecionamentos
+auth.settings.login_next = URL(r=request, c='default', f='bubbles')
+auth.settings.logged_url = URL('user', args='profile')
+auth.settings.change_password_next = URL('user/profile')
+auth.settings.retrieve_username_next = URL('user/profile')
+auth.settings.profile_next = URL('user/profile')
+auth.settings.register_next = URL('../default', args='bubbles')
+
+e_m={
+    'empty':T('This is a required Field'),
+    'in_db':T('This already exists in database'),
+    'not_in_db':T('This does not exists in database'),
+    'email':T('You have to insert a valid mail address'),
+    'image':T('The file need to be an image'),
+    'not_in_set':T('You need to chose a valid value'),
+    'not_in_range':T('Type a number between %(min)s and %(max)s'),
+    }
+# pre-defined validator
+notempty=IS_NOT_EMPTY(error_message=e_m['empty'])
+
+#########################################################################
+## Definição da tabela usuário
+#########################################################################
+db.define_table(
+    auth.settings.table_user_name,
+    Field('first_name', length=128, default='', label=T('Name')),
+    Field('last_name', length=128, default='', label=T('Last name')),
+    Field('email', length=128, default='', unique=True, label=T('E-mail')),
+    Field('password', 'password', length=512, readable=False, label=T('Password')),
+    Field('registration_key', length=512, writable=False, readable=False, default=''),
+    Field('reset_password_key', length=512, writable=False, readable=False, default=''),
+    Field('registration_id', length=512, writable=False, readable=False, default=''),
+    Field('points','integer', writable=False, readable=False, default=''),
+    Field('phone', length=14, writable=False, readable=False, default=''),
+    Field('imei', length=50, writable=False, readable=False, default=''), migrate=True)
+
+custom_auth_table = db[auth.settings.table_user_name] # get the custom_auth_table
+custom_auth_table.first_name.requires = IS_NOT_EMPTY(error_message=auth.messages.is_empty)
+custom_auth_table.last_name.requires =  IS_NOT_EMPTY(error_message=auth.messages.is_empty)
+custom_auth_table.password.requires = [IS_STRONG(min=6, max=12, upper=None, lower=None, number=None, special=None), CRYPT()]
+custom_auth_table.email.requires = [IS_EMAIL(error_message=auth.messages.invalid_email), IS_NOT_IN_DB(db, custom_auth_table.email)]
+auth.settings.table_user = custom_auth_table    # tell auth to use custom_auth_table
+
+# before
+auth.define_tables()
+
+#########################################################################
+## Definição do atributo me para registro padrão do ID do usuário
+#########################################################################
+if auth.is_logged_in():
+   me=auth.user.id
+else:
+   me=None
+   
+#########################################################################
+## Definição da tabela categoria de bolhas
+#########################################################################
+db.define_table('categories',
+    Field('category_name', 'string', length=128, default='', label=T('Name')),
+    Field('points','integer', label=T('Points')),
+    Field('description','text', label=T('Description'), notnull=True),
+    Field('created_by',db.auth_user,default=me,writable=False,readable=False),
+    Field('created_on','datetime',default=request.now,writable=False,readable=False,label=T('Created on')),
+    format='%(name)s')
+
+db.categories.category_name.requires =  [IS_NOT_EMPTY(error_message=T('Please insert category name.')), IS_NOT_IN_DB(db, db.categories.category_name)]
+db.categories.points.requires = IS_NOT_EMPTY(error_message=T('Please insert points quantity.'))
+db.categories.description.requires = IS_NOT_EMPTY(error_message=T('Please insert description.'))
+
+#########################################################################
+## Definição da tabela de bolhas
+#########################################################################   
+db.define_table('bubbles',
+    Field('address', 'string', length=128, default='', label=T('Address')),
+    Field('longitude', 'string', length=32, default='', label=T('Longitude')),
+    Field('latitude', 'string', length=32, default='', label=T('Latitude')),
+    Field('validity', 'date', requires=IS_DATE(format=T('%d/%m/%Y')), label=T('Validity')),
+    Field('category', 'string', label=T('Category')),
+    Field('description', 'text', notnull=True, label=T('Description')),
+    Field('status','boolean', label=T('Activity')),
+    Field('created_by',db.auth_user,default=me,writable=False,readable=False),
+    Field('created_on','datetime',default=request.now,writable=False,readable=False,label=T('Created on')))
+
+db.bubbles.address.requires = IS_NOT_EMPTY(error_message=T('Please insert the address.'))        
+db.bubbles.category.requires = IS_IN_DB(db, db.categories.id, '%(category_name)s')
+
+#########################################################################
+## Definição da tabela usuario_bolha
+######################################################################### 
+db.define_table('user_bubble',
+    Field('user','integer', label=T('User')),
+    Field('bubble','integer', label=T('Bubble')),
+    Field('user_points', 'integer', label=T('Points')))
+    
+db.user_bubble.bubble.requires = IS_IN_DB(db, db.bubbles.id)  
+db.user_bubble.user.requires = IS_IN_DB(db, db.auth_user.id)
+
+#########################################################################
+## Definição da tabela contato
+######################################################################### 
+db.define_table('contact',
+                Field('name'),
+                Field('email'),
+                Field('tel'),
+                Field('message','text'),
+                Field('date', 'datetime', default=request.now)
+                )
+
+# validation of contato
+db.contact.name.requires=notempty
+db.contact.email.requires=IS_EMAIL(error_message=e_m['email'])
+db.contact.tel.requires=notempty
+
+#formating contato
+db.contact.name.label = T('Full name')
+db.contact.email.label = T('Your e-mail')
+db.contact.tel.label = T('Your telephone')
+db.contact.message.label = T('Your message')
+db.contact.date.writable=False
+db.contact.date.readable=False
+
+db.define_table('recipient',
+                Field('name',requires=IS_NOT_EMPTY()),
+                Field('email',requires=IS_EMAIL()))   
+   
+def email_user(sender,message,subject="group notice"):
+    import smtplib # change if you want to work on GAE
+    fromaddr=sender
+    toaddrs=[x.email for x in db().select(db.recipient.email)]
+    msg="From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s"%(fromaddr,", ".join(toaddrs),subject,message)
+    server = smtplib.SMTP('localhost:25')
+    server.sendmail(fromaddr, toaddrs, msg)
+    server.quit()
+
+#########################################################################
+## Customiza mensagens de autenticação
+#########################################################################
+auth.messages.submit_button = 'Enviar'
+auth.messages.verify_password = 'Confirme sua senha'
+auth.messages.delete_label = 'Verifique para apagar:'
+auth.messages.function_disabled = 'Função desabilitada'
+auth.messages.access_denied = 'Privilégios insuficientes'
+auth.messages.registration_verifying = 'Registration needs verification'
+auth.messages.registration_pending = 'Registration is pending approval'
+auth.messages.login_disabled = 'Login disabled by administrator'
+auth.messages.logged_in = 'Logged in'
+auth.messages.email_sent = 'Email sent'
+auth.messages.unable_to_send_email = 'Unable to send email'
+auth.messages.email_verified = 'Email verified'
+auth.messages.logged_out = 'Logged out'
+auth.messages.registration_successful = 'Registration successful'
+auth.messages.invalid_email = 'E-mail inválido'
+auth.messages.unable_send_email = 'Unable to send email'
+auth.messages.invalid_login = 'Login inválido'
+auth.messages.invalid_user = 'Invalid user'
+auth.messages.is_empty = "Cannot be empty"
+auth.messages.mismatched_password = "Password fields don't match"
+auth.messages.verify_email = "..."
+auth.messages.verify_email_subject = 'Password verify'
+auth.messages.username_sent = 'Your username was emailed to you'
+auth.messages.new_password_sent = 'A new password was emailed to you'
+auth.messages.password_changed = 'Password changed'
+auth.messages.retrieve_username = 'Your username is: %(username)s'
+auth.messages.retrieve_username_subject = 'Username retrieve'
+auth.messages.retrieve_password = 'Your password is: %(password)s'
+auth.messages.retrieve_password_subject = 'Password retrieve'
+auth.messages.reset_password = '...'
+auth.messages.reset_password_subject = 'Password reset'
+auth.messages.invalid_reset_password = 'Invalid reset password'
+auth.messages.profile_updated = 'Profile updated'
+auth.messages.new_password = 'Nova senha'
+auth.messages.old_password = 'Senha antiga'
+auth.messages.group_description = 'Group uniquely assigned to user %(id)s'
+auth.messages.register_log = 'User %(id)s Registered'
+auth.messages.login_log = 'User %(id)s Logged-in'
+auth.messages.logout_log = 'User %(id)s Logged-out'
+auth.messages.profile_log = 'User %(id)s Profile updated'
+auth.messages.verify_email_log = 'User %(id)s Verification email sent'
+auth.messages.retrieve_username_log = 'User %(id)s Username retrieved'
+auth.messages.retrieve_password_log = 'User %(id)s Password retrieved'
+auth.messages.reset_password_log = 'User %(id)s Password reset'
+auth.messages.change_password_log = 'User %(id)s Password changed'
+auth.messages.add_group_log = 'Group %(group_id)s created'
+auth.messages.del_group_log = 'Group %(group_id)s deleted'
+auth.messages.add_membership_log = None
+auth.messages.del_membership_log = None
+auth.messages.has_membership_log = None
+auth.messages.add_permission_log = None
+auth.messages.del_permission_log = None
+auth.messages.has_permission_log = None
+auth.messages.label_first_name = 'Primeiro nome'
+auth.messages.label_last_name = 'Último nome'
+auth.messages.label_username = 'Username'
+auth.messages.label_email = 'E-mail'
+auth.messages.label_password = 'Senha'
+auth.messages.label_registration_key = 'Registration key'
+auth.messages.label_reset_password_key = 'Reset Password key'
+auth.messages.label_registration_id = 'Registration identifier'
+auth.messages.label_role = 'Papel'
+auth.messages.label_description = 'Descrição'
+auth.messages.label_user_id = 'User ID'
+auth.messages.label_group_id = 'Group ID'
+auth.messages.label_name = 'Nome'
+auth.messages.label_table_name = 'Table name'
+auth.messages.label_record_id = 'Record ID'
+auth.messages.label_time_stamp = 'Timestamp'
+auth.messages.label_client_ip = 'Client IP'
+auth.messages.label_origin = 'Origem'
+auth.messages.label_remember_me = "Lembre-se de mim (por 30 dias)"

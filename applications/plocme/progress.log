@@ -1,0 +1,21 @@
+[2016-07-24 12:40:25] START
+[2016-07-24 12:40:25] EDIT plocme/views/layout.html: 0
+[2016-07-24 12:40:27] EDIT plocme/views/layout.html: 0
+[2016-07-24 12:45:39] EDIT plocme/views/layout.html: 0
+[2016-07-24 12:45:39] EDIT plocme/views/layout.html: 0
+[2016-07-24 12:45:40] EDIT plocme/views/layout.html: 0
+[2016-07-24 12:48:54] EDIT plocme/views/layout.html: -5
+[2016-07-24 12:48:54] EDIT plocme/views/layout.html: 0
+[2016-07-24 12:48:54] EDIT plocme/views/layout.html: 0
+[2016-07-24 12:50:27] DELETE plocme/static/js/modernizr-1.6.min.js: -30
+[2016-07-25 14:21:02] EDIT plocme/views/home.html: 0
+[2016-07-25 14:21:53] EDIT plocme/views/home.html: 0
+[2016-07-25 14:21:57] EDIT plocme/views/home.html: 0
+[2016-07-25 14:21:57] EDIT plocme/views/home.html: 0
+[2016-07-25 14:26:54] EDIT plocme/views/default/index.html: 0
+[2016-07-25 14:28:05] EDIT plocme/views/layout.html: 0
+[2016-07-25 14:28:05] EDIT plocme/views/layout.html: 0
+[2016-07-25 14:28:06] EDIT plocme/views/layout.html: 0
+[2016-07-25 14:29:17] EDIT plocme/views/default/contact.html: 2
+[2016-07-25 14:31:01] EDIT plocme/models/menu.py: 0
+[2016-07-25 14:32:57] EDIT plocme/views/default/index.html: 0

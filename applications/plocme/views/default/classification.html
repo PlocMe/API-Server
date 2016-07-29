@@ -1,0 +1,15 @@
+{{extend 'layout.html'}}
+<h1>{{=T('Classification')}}</h1>
+ 
+<table class="tb-classification">
+  <thead><tr> <th>Posição</th> <th>Nome</th> <th>Pontos</th> </tr></thead>
+  <tbody>
+ {{for position, gamer in enumerate(gamers):}}
+  <tr>
+     <td>{{=position+1}}</td>
+     <td>{{=gamer.first_name}}</td>
+     <td>{{=gamer.points}}</td>
+  </tr>
+ {{pass}}
+ </tbody>
+</table>

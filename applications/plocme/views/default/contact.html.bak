@@ -1,0 +1,24 @@
+{{extend 'layout.html'}}
+<h1>{{=T('Contact')}}</h1>
+
+
+<div class="left left-map">
+<h2>E-mails</h2>
+<a href="mailto:contato@plocme.com">contato@plocme.com</a><br />
+<a href="mailto:bugs@plocme.com">bugs@plocme.com</a>
+
+
+<h2>Telefones:</h2>
+(51) 9644-2104<br />
+(51) 8208-8646
+
+</div>
+<div class="left left-map">
+{{if 'form' in response._vars:}}
+<div class="form-contato">
+    <fieldset>
+        {{=form}}
+    </fieldset>
+</div>
+{{pass}}
+</div>

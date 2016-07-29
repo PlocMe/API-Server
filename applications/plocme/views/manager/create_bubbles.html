@@ -1,0 +1,77 @@
+{{extend 'layout.html'}}
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.1&sensor=false&language=pt-BR"></script>
+<script type="text/javascript"> 
+var geocoder = new google.maps.Geocoder();
+ 
+function geocodePosition(pos) {
+  geocoder.geocode({
+    latLng: pos
+  }, function(responses) {
+    if (responses && responses.length > 0) {
+      updateMarkerAddress(responses[0].formatted_address);
+    } else {
+      updateMarkerAddress('Não é possível determinar o endereço neste local.');
+    }
+  });
+}
+ 
+function updateMarkerStatus(str) {
+  document.getElementById('status').innerHTML = str;
+}
+ 
+function updateMarkerPosition(latLng) {
+  document.getElementById("bubbles_latitude").value=latLng.lat();
+  document.getElementById("bubbles_longitude").value=latLng.lng();
+}
+ 
+function updateMarkerAddress(str) {
+  document.getElementById('bubbles_address').value=str; 
+}
+ 
+function initialize() {
+  var latLng = new google.maps.LatLng(-30.041946, -51.229077);
+  var map = new google.maps.Map(document.getElementById('map_canvas'), {
+    zoom: 7,
+    center: latLng,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  });
+ 
+  var marker = new google.maps.Marker({
+    position: latLng,
+    title: 'Bolha',
+    map: map,
+    draggable: true
+  });
+  
+  // Update current position info.
+  updateMarkerPosition(latLng);
+  geocodePosition(latLng);
+  
+  // Add dragging event listeners.
+  google.maps.event.addListener(marker, 'dragstart', function() {
+    updateMarkerAddress('Arrastando...');
+  });
+  
+  google.maps.event.addListener(marker, 'drag', function() {
+    updateMarkerStatus('Arrastando...');
+    updateMarkerPosition(marker.getPosition());
+  });
+  
+  google.maps.event.addListener(marker, 'dragend', function() {
+    updateMarkerStatus('Ponto selecionado.');
+    geocodePosition(marker.getPosition());
+  });
+}
+ 
+// Onload handler to fire off the app.
+google.maps.event.addDomListener(window, 'load', initialize);
+</script> 
+<body> 
+<h1>{{=T('Create bubble')}}</h1>
+<div id="left_mapa">
+<div id="status"><i>Clique e arraste o marcador.</i></div>
+{{=form}}
+</div>
+<div id="form_mapa">
+<div id="map_canvas" style="width:550px; height:500px"></div>
+</div>
